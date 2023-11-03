@@ -1,5 +1,4 @@
 # Get the api from youtube data api v3
-import os
 import argparse
 import googleapiclient.discovery
 import json
@@ -76,9 +75,7 @@ def store_channel_videos(channel_name, videos):
         video_title = video['snippet']['title']
         video_id = video['snippet']['resourceId']['videoId']
         video_upload_date = video['snippet']['publishedAt']
-
         channel_videos[channel_name].append({'title': video_title, 'id': video_id, 'upload_date': video_upload_date})
-
 
     with open(channel_name+'-videos.json', 'w', encoding='utf-8') as f:
         json.dump(channel_videos, f, ensure_ascii=False, indent=4)
@@ -96,11 +93,6 @@ def main():
 
     videos = get_channel_videos_from_name(api_key, channel_name)
     store_channel_videos(channel_name, videos)
-
-    for video in videos:
-        video_title = video['snippet']['title']
-        video_id = video['snippet']['resourceId']['videoId']
-        print(f'{video_title}: https://www.youtube.com/watch?v={video_id}')
 
 if __name__ == "__main__":
     main()
