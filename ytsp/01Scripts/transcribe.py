@@ -2,6 +2,7 @@ import os
 import argparse
 import datetime
 import json
+from typing import Iterable
 import openai
 from dotenv import load_dotenv,find_dotenv
 from langchain.document_loaders.generic import GenericLoader
@@ -13,13 +14,15 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA
+from langchain.schema import Document
+from langchain.chains.retrieval_qa import BaseRetrievalQA
 import file_json as fj
 
 
 
 
 # parse youtube video using langchain and openai whisper parser to gererate a document
-def parse_youtube_video(video_id,save_dir,transcript_dir):
+def parse_youtube_video(video_id:str,save_dir:str,transcript_dir:str)->Document:
     baseURL = "https://www.youtube.com/watch?v="
     loader = YoutubeAudioLoader([baseURL+video_id],save_dir)
     # check that the file exists at transcript_dir and load it
@@ -32,7 +35,7 @@ def parse_youtube_video(video_id,save_dir,transcript_dir):
         document = GenericLoader(loader, parser).load()
     return document
 
-def split_documents(docs):
+def split_documents(docs:Iterable[Document])->Iterable[Document]:
     # split documents into sentences
     text_splitter = RecursiveCharacterTextSplitter(
     chunk_size = 1500,
@@ -42,7 +45,7 @@ def split_documents(docs):
     return splits
 
 # generate embedings in chroma format
-def generate_embeddings(splits,removeChroma=False,persist_directory="chroma"):
+def generate_embeddings(splits:list[Document],removeChroma:bool=False,persist_directory:str="chroma")->Chroma:
     embedding = OpenAIEmbeddings()
     if removeChroma:
         os.rmdir(persist_directory)
@@ -56,7 +59,7 @@ def generate_embeddings(splits,removeChroma=False,persist_directory="chroma"):
         )
     return vectordb
 
-def get_llm():
+def get_llm()->ChatOpenAI:
     current_date = datetime.datetime.now().date()
     if current_date < datetime.date(2023, 9, 2):
         llm_name = "gpt-3.5-turbo-0301"
@@ -67,7 +70,7 @@ def get_llm():
 
 
 # generate prompt template
-def generate_prompt_template(vectordb,question):
+def generate_prompt_template(vectordb:Chroma,question:str)-> BaseRetrievalQA:
     template = """Usa las siguientes piezas de contexto para responder las preguntas del final. Si no sabes la respuesta, dí que no sabes, no trates de inventar una respuesta. Usa una lista en formato json para generar la respuesta.
     {context}
     Pregunta: {question}

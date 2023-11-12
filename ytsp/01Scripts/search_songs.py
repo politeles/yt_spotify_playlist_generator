@@ -12,7 +12,7 @@ import file_json as fj
 
 
 # create a playlist in spotify with the songs specified in the songs list
-def create_playlist(spotify,name, songs)->None:
+def create_playlist(name:str, songs:list)->None:
     print("creating playlist...")
     sp_client_id = os.environ.get("SPOTIPY_CLIENT_ID")
     sp_client_secret = os.environ.get("SPOTIPY_CLIENT_SECRET")

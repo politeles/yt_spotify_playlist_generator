@@ -1,0 +1,46 @@
+# Development Dockerfile
+# you can run it and work on your local file by mounting the local directory to the container
+# docker run -p 8000:8000 -v .:/app  -t --name=ytsp ytsp:dev
+# then you can access the container by running
+# docker exec -it ytsp /bin/bash
+FROM python:3.9 AS build
+
+# Set the working directory to /app
+WORKDIR /app
+# define a non-root user called ytsp
+RUN useradd -m ytsp
+# set the user to ytsp
+USER ytsp
+
+
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+# add to PATH the current user's .local/bin directory
+ENV HOME=/home/ytsp
+ENV PATH="$HOME/.local/bin:${PATH}"
+
+
+# Second stage of the build process
+FROM build AS dev
+
+# Copy the current directory contents into the container at /app
+WORKDIR /app
+COPY . /app
+
+# install dependencies
+RUN poetry install
+
+FROM dev as runtime
+# Make port 8000 available to the world outside this container
+EXPOSE 8000
+# cd to folder 02APIS
+WORKDIR /app/ytsp/02APIs
+
+# run a shell so the container doesnt exit
+#CMD ["/bin/bash"]
+
+# run uviconrn
+CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0","--port" ,"8000","--reload" ]
+
+

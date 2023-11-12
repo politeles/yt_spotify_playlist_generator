@@ -1,4 +1,6 @@
 # Get the api from youtube data api v3
+import os
+from dotenv import load_dotenv,find_dotenv
 import argparse
 import googleapiclient.discovery
 import json
@@ -6,7 +8,7 @@ import json
 
 
 # Get channel id from channel name:
-def get_channel_id(api_key, channel_name):
+def get_channel_id(api_key:str , channel_name:str)->str:
     youtube = googleapiclient.discovery.build('youtube', 'v3', developerKey=api_key)
 
     # Search for the channel based on the channel name
@@ -24,7 +26,7 @@ def get_channel_id(api_key, channel_name):
 
 
 # get the list of uploaded videos from channel id
-def get_channel_videos(api_key, channel_id):
+def get_channel_videos(api_key:str, channel_id:str)->list:
     youtube = googleapiclient.discovery.build('youtube', 'v3', developerKey=api_key)
 
     channel_response = youtube.channels().list(
@@ -58,7 +60,7 @@ def get_channel_videos(api_key, channel_id):
 
 
 # get channel videos from channel name
-def get_channel_videos_from_name(api_key, channel_name):
+def get_channel_videos_from_name(api_key:str, channel_name:str)->list:
     # call get channel id function
     channel_id = get_channel_id(api_key, channel_name)
     # call get channel videos function
@@ -67,7 +69,7 @@ def get_channel_videos_from_name(api_key, channel_name):
 
 
 # store channel videos and titles in a json file
-def store_channel_videos(channel_name, videos):
+def store_channel_videos(channel_name:str, videos:str)->None:
     channel_videos = {}
     channel_videos[channel_name] = []
 
@@ -84,12 +86,12 @@ def store_channel_videos(channel_name, videos):
 
 def main():
     parser = argparse.ArgumentParser(description='Fetch videos from a YouTube channel.')
-    parser.add_argument('api_key', help='Your YouTube Data API v3 API key')
-    parser.add_argument('channel_name', help='The name of the YouTube channel')
+    parser.add_argument('--name', help='The name of the YouTube channel')
     args = parser.parse_args()
-
-    api_key = args.api_key
-    channel_name = args.channel_name
+    print("loading environment variables...")
+    _ = load_dotenv(find_dotenv())
+    api_key = os.getenv("YT_API_KEY")
+    channel_name = args.name
 
     videos = get_channel_videos_from_name(api_key, channel_name)
     store_channel_videos(channel_name, videos)
